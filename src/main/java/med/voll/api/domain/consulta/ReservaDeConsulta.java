@@ -1,6 +1,7 @@
 package med.voll.api.domain.consulta;
 
 import med.voll.api.domain.ValidacionException;
+import med.voll.api.domain.consulta.validaciones.ValidadorDeConsultas;
 import med.voll.api.domain.medico.Especialidad;
 import med.voll.api.domain.medico.Medico;
 import med.voll.api.domain.medico.MedicoRepository;
@@ -8,6 +9,8 @@ import med.voll.api.domain.paciente.Paciente;
 import med.voll.api.domain.paciente.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ReservaDeConsulta {
@@ -18,30 +21,37 @@ public class ReservaDeConsulta {
     @Autowired
     private PacienteRepository pacienteRepository;
 
-    public void reservar(DatosReservaConsulta datos){
-        if(datos.idMedico()!=null && !medicoRepository.existsById(datos.idMedico())){
+    @Autowired
+    List<ValidadorDeConsultas> validador;
+
+    public void reservar(DatosReservaConsulta datos) {
+        if (datos.idMedico() != null && !medicoRepository.existsById(datos.idMedico())) {
             throw new ValidacionException("No existe el medico con el id solicitado!");
         }
 
-        if(!pacienteRepository.existsById(datos.idPaciente())){
+        if (!pacienteRepository.existsById(datos.idPaciente())) {
             throw new ValidacionException("No existe el paciente con el id solicitado");
         }
 
-        Medico medico= elejirMedico(datos);
+        //recorre la lista clases que implementan la interfaz y uso los metodos validar
+        //patron strategy-todos deben estar anotados con @Component
+        validador.forEach(v ->v.validar(datos));
+
+        Medico medico = elejirMedico(datos);
         Paciente paciente = pacienteRepository.findById(datos.idPaciente()).get();
-        var consulta= new Consulta(null,medico,paciente,datos.fecha(),null);
+        var consulta = new Consulta(null, medico, paciente, datos.fecha(), null);
 
         consultaRepository.save(consulta);
     }
 
     private Medico elejirMedico(DatosReservaConsulta datos) {
-        if(datos.idMedico()!=null){
+        if (datos.idMedico() != null) {
             return medicoRepository.getReferenceById(datos.idMedico());
         }
-        if(datos.especialidad()==null){
+        if (datos.especialidad() == null) {
             throw new ValidacionException("Es necesario elegir una especialidad cuando no se selecciona un medico");
         }
-        return medicoRepository.elegirMedicoAleatorioDisponibleEnFecha(datos.especialidad(),datos.fecha());
+        return medicoRepository.elegirMedicoAleatorioDisponibleEnFecha(datos.especialidad(), datos.fecha());
     }
 
     public void cancelar(DatosCancelamientoConsulta datos) {
