@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import med.voll.api.domain.ValidacionException;
 import med.voll.api.domain.medico.Medico;
 import med.voll.api.domain.paciente.Paciente;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,6 +35,7 @@ public class Consulta {
     private MotivoCancelamiento motivoCancelamiento;
 
     public void cancelar(MotivoCancelamiento motivo) {
+
         this.motivoCancelamiento = motivo;
     }
 
