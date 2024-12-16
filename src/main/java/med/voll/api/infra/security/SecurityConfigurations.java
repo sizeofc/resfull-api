@@ -30,6 +30,8 @@ public class SecurityConfigurations {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/login")
                         .permitAll()
+                        .requestMatchers("/v3/api-docs/**","/swagger-ui.html","/swagger-ui/**","/hello")
+                        .permitAll()
                         // Restringir DELETE en /medicos al rol ADMIN
 //                        .requestMatchers(HttpMethod.DELETE, "/medicos").hasRole("ADMIN")
                         .anyRequest().authenticated())
